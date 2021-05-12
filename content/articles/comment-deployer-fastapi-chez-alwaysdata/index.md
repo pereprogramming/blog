@@ -1,6 +1,6 @@
 ---
-title: "Comment déployer une app Fastapi (asyncio) chez Alwaysdata"
-date: 2021-05-06T10:14:42+01:00
+title: "Comment déployer gratuitement une app Fastapi (asyncio) chez Alwaysdata"
+date: 2021-05-11T10:14:42+01:00
 toc: true
 images:
 tags:
@@ -136,4 +136,6 @@ Si ce n'est pas le cas, voici quelques éléments à savoir :
 - Les fichiers de logs se trouvent dans `~/admin/logs/sites/`
 - Lorsque vous faites une modification, n'oubliez pas de « rédémarrer » votre site dans l'administration Alwaysdata sinon vous ne verrez pas la modification.
 
-N'hésitez pas [à me contacter sur Twitter](https://twitter.com/pereprogramming) si vous avez des questions. Amusez-vous bien !
+N'hésitez pas [à me contacter sur Twitter](https://twitter.com/pereprogramming) si vous avez des questions.
+
+Amusez-vous bien ! :tada:
