@@ -2,6 +2,11 @@
 title: "Le guide complet du débutant avec FastAPI - Partie 1 : installation et premier programme"
 date: 2021-06-11T19:33:20+01:00
 toc: true
+tags:
+  - python
+  - framework
+  - fastapi
+  - web
 ---
 
 ## Pourquoi FastAPI ?
@@ -78,7 +83,7 @@ Vous devriez obtenir un résultat de ce type :
 Une fois votre environnement virtuel créé, il faut que vous l'activiez grâce à la commande suivante :
 
 ```
-$ source venv/bin/activate
+$ source ./venv/bin/activate
 ```
 
 Cela devrait vous ajouter `(venv)` au début de votre ligne de commandes, cf ci-dessous.
