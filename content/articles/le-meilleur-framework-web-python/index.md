@@ -1,5 +1,5 @@
 ---
-title: "Le meilleur framework web Python en 2021"
+title: "FastAPI : Le meilleur framework web Python en 2021"
 date: 2021-06-11T08:30:55+01:00
 toc: true
 tags:
@@ -161,4 +161,7 @@ Si en revanche vous avez absolument __besoin de l'admin Django__, partir avec __
 
 Quoiqu'il en soit, FastAPI est le framework Python qui m'a le plus impressionné depuis des années. Pour moi, __l'essayer, c'est l'adopter__ ! Pour commencer, vous pouvez [suivre le tutorial du site web officiel](https://fastapi.tiangolo.com/tutorial/).
 
-Sinon, je vous prévois une suite d'articles de blog avec des exemples pas à pas. Stay tuned ! :tada:
+Vous pouvez aussi consulter le guide complet que je suis en train d'écrire à ce sujet :
+- [Le guide complet du débutant avec FastAPI - Partie 1 : installation et premier programme](http://localhost:1313/articles/le-guide-complet-du-debutant-avec-fastapi-partie-1/)
+
+Stay tuned pour la suite ! :tada:
