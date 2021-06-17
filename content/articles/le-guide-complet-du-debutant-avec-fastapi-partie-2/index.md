@@ -216,7 +216,7 @@ Puis installez Tortoise ORM.
 (venv) $ pip install tortoise-orm
 ```
 
-### Création des modèles
+### Création du modèle Article
 
 Nous allons ajouter un premier modèle à notre application. Ce modèle va représenter un article dans notre Newsletter. Il aura donc les champs classiques auxquels l'on pourrait s'attendre : titre, contenu, etc.
 
@@ -234,7 +234,7 @@ app.mount("/public", StaticFiles(directory="public"), name="public")
 templates = Jinja2Templates(directory="app/templates")
 
 
-class Articles(Model):
+class Article(Model):
 
     id = fields.IntField(pk=True)
 
@@ -272,7 +272,7 @@ Ensuite, nous définissons notre modèle, que nous allons nommer `Article` et qu
 class Articles(Model):
 ```
 
-Nous déclarons ici la clé primaire de notre modèle, de type `IntField`. Le `pk=True` va permettre de considérer le champs comme clé primaire (__p__rimarey __k__ey) et va générer la prochaine valeur automatiquement de manière incrémentale. Ce n'est pas quelque chose d'obligatoire puisque si nous ne le faisons pas, Tortoise créera un champ `id` automatiquement pour nous. Mais je préfère toujours le faire de manière explicite.
+Nous déclarons ici la clé primaire de notre modèle, de type `IntField`. Le `pk=True` va permettre de considérer le champs comme clé primaire et va générer la prochaine valeur automatiquement de manière incrémentale. Ce n'est pas quelque chose d'obligatoire puisque si nous ne le faisons pas, Tortoise créera un champ `id` automatiquement pour nous. Mais je préfère toujours le faire de manière explicite.
 
 ```python
     id = fields.IntField(pk=True)
@@ -300,3 +300,104 @@ Et pour finir, je surcharge la méthode Python par défaut `__str__`.
 ```
 
 Il n'est pas obligatoire de surcharger la fonction `__str__` mais c'est une bonne pratique qui nous permettra de faciliter notre debug plus tard. Quand on demandera à afficher l'objet, cela affichera son titre au lieu d'une représentation incompréhensible interne à Python.
+
+Il nous reste à déclarer Tortoise à notre application FastAPI. Pour ce faire nous allons rajouter cet import :
+
+```python
+from tortoise.contrib.fastapi import register_tortoise
+```
+
+Et enregistrer Tortoise auprès de notre application, directement après la déclaration des templates :
+
+```python
+# app/main.py
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from tortoise import fields
+from tortoise.models import Model
+from tortoise.contrib.fastapi import register_tortoise
+
+app = FastAPI()
+
+app.mount("/public", StaticFiles(directory="public"), name="public")
+
+templates = Jinja2Templates(directory="app/templates")
+
+register_tortoise(
+    app,
+    db_url="sqlite://db.sqlite3",
+    modules={"models": ["app.main"]},
+    generate_schemas=True,
+    add_exception_handlers=True,
+)
+
+# … reste du code
+```
+
+Dans la partie `db_url` nous spécifions comment accéder à notre base de données, ici un fichier local SQLite, nommé `db.sqlite3` et qui se trouvera à la racine de notre application (là où `uvicorn` est lancé).
+
+L'argument `modules`  nous permet de spécifier à Tortoise où chercher nos modèles. Dans le cas présent, nous lui disons de chercher dans le module `app.main`, soit le fichier `main.py` situé dans le répertoire `app`.
+
+Avec l'ajout du fichier de bases de données `db.sqlite3` qui sera créé automatiquement dans notre projet, nous allons avoir besoin de changer la commande pour lancer `uvicorn`. En effet, le paramètre `--reload` de la commande `uvicorn` relance uvicorn à chaque fois qu'un fichier est modifié, peu importe où. Le problème est qu'à chaque fois que l'on modifiera la base de données `uvicorn` se rechargera automatiquement ce qui va finir par être pénible. Il suffit donc de spécifier à uvicorn où sont les fichiers qu'il doit surveiller pour s'auto-relancer avec le paramètre `--reload-dir` comme ci-dessous :
+
+```
+(venv) $ uvicorn app.main:app --reload --reload-dir app
+```
+
+Il va maintenant nous rester à ajouter des méthodes pour créer et afficher nos articles.
+
+### Ajout d'un Article
+
+Créons une méthode qui, à chaque fois que l'on appelle l'url `/articles/create`, va enregistrer un article dans la base de données. Évidemment, ce n'est pas optimal et nous changerons cette méthode un peu plus tard. Nous utiliserons notamment `@app.post` et non pas `@app.get` et nous créerons notre Article à partir d'un formulaire, mais pour un début, ça fera l'affaire.
+
+```python
+# app/main.py
+
+# … début du fichier
+
+@app.get("/articles/create")
+async def articles_create(request: Request):
+
+    article = await Article.create(
+        title="Mon titre de test",
+        content="Un peu de contenu<br />avec deux lignes"
+    )
+
+    return templates.TemplateResponse(
+        "articles_create.html",
+        {
+            "request": request,
+            "article": article
+        })
+```
+
+
+Il nous suffit d'appeler la méthode `create` sur notre modèle `Article` et de lui passer les arguments correspondant, ici `title` et `content`.
+
+Notez l'utilisation du mot clé `await` qui va dire à Python _d'attendre_ le résultat de la fonction create. La fonction `create` est en effet une fonction ___asynchrone___, c'est à dire que c'est une fonction qui est effectuée en parallèle de votre code et qui par défaut, va faire sa petite affaire de son côté, elle est non bloquante. Tout fonction asynchrone, non bloquante, doit être _attendue_ pour en récupérer son résultat.
+
+Si vous oubliez de le mettre, Python vous enverra une erreur de ce style :
+
+```
+RuntimeWarning: coroutine 'Model.create' was never awaited
+```
+
+Nous passons ensuite notre objet nouvellement créé à un template nommé `articles_create.html` que vous allez créer dès maintenant dans `app/templates/articles_create.html` avec le contenu suivant :
+
+```django
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Articles create</title>
+    <link href="{{ url_for('public', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <p>Article created: <strong>{{ article }}</strong></p>
+</body>
+</html>
+```
+
+À chaque chargement de l'url [http://localhost:8000/articles/create](http://localhost:8000/articles/create) un objet sera créé dans la base de données et la page suivante devrait s'afficher :
+
+![Création d'article](images/articles_create.png)
