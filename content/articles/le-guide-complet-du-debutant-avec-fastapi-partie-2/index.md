@@ -401,3 +401,94 @@ Nous passons ensuite notre objet nouvellement créé à un template nommé `arti
 À chaque chargement de l'url [http://localhost:8000/articles/create](http://localhost:8000/articles/create) un objet sera créé dans la base de données et la page suivante devrait s'afficher :
 
 ![Création d'article](images/articles_create.png)
+
+### Liste des articles : page HTML
+
+Ajoutons un point d'entrée pour pouvoir afficher la liste de nos articles dans une page HTML.
+
+```python
+# 
+@app.get("/articles")
+async def articles_list(request: Request):
+
+    articles = await Article.all().order_by('created_at')
+
+    return templates.TemplateResponse(
+        "articles_list.html",
+        {
+            "request": request,
+            "articles": articles
+        })
+```
+
+Notez l'utilisation de la function `Article.all()` qui nous permet de récupérer tous les articles. Nous appelons ensuite `.order_by('created_at')` pour trier nos articles par date de création croissante et nous passons notre variable `articles` sous le même nom à notre template `articles_list.html`.
+
+Il nous reste maintenant à créer le template dans `app/templates/articles_list.html`
+
+```django
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Articles list</title>
+    <link href="{{ url_for('public', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <h1>Liste des articles</h1>
+    <ul>
+    {% for article in articles %}
+        <li>{{ article.id }} - {{ article.title }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
+```
+
+Notez la façon de réaliser des boucles avec le moteur de template Jinja2. Toute commande est commence par un `{%` et finit par un `%}` sur la même ligne. Rien de bien sorcier à part le fait de ne pas oublier de fermer le for avec `{% endfor %}`.
+
+Ci-dessous le résultat que vous devriez avoir (au nombre d'articles prêt).
+
+![Liste des articles HTML](images/articles_liste.png)
+
+### Liste des articles : API Json
+
+Afficher du HTML c'est chouette et c'est la base du web. Mais comme je l'ai déjà mentionné en introduction, FastAPI est parfait pour réaliser des __API__ (les parties cachées de vos applications mobiles notamment), et on aurait tort de s'en priver. Une Url d'API se comporte comme une URL web classique à la différence prêt qu'elle ne retourne pas de contenu HTML mais juste __des données brutes__.
+
+Notre premier _Hello World_ était déjà une URL de _type API_, nous allons faire de même pour créer une API qui retourne la liste de nos articles.
+
+```python
+# app/main.py
+
+# … début du contenu du fichier
+
+@app.get("/api/articles")
+async def api_articles_list():
+
+    articles = await Article.all().order_by('created_at')
+
+    return articles
+```
+
+Et c'est aussi simple que ça. Au lieu de retourner un template comme nous le faisions jusqu'ici, nous retournons juste notre liste d'objets Python. FastAPI se charge de faire le reste.
+
+Si vous vous rendez sur [http://localhost:8000/api/articles](http://localhost:8000/api/articles) dans votre navigateur, vous devriez voir s'afficher quelque chose comme cela :
+
+![Liste des articles JSON](images/articles_liste_json.png)
+
+Vous avouerez que ce n'est pas très sexy et pour cause, c'est juste de la donnée brute, sans formattage ou autre. Dans ce cas, notre navigateur Web classique ne sert pas à grand chose. Pour travailler avec des API, il existe des outils spécialisés pour cela, dont un qui est écrit en Python, [httpie](https://httpie.io/). Il est parfait pour ce que nous aurons à faire et je l'utiliserai comme référence à partir de maintenant.
+
+Activez votre virtualenv et installez `httpie` :
+
+```
+(venv) $ pip install httpie
+```
+
+Vous devriez ensuite pouvoir appeler la commande `http` (dans votre virtualenv) :
+
+```
+(venv) $ http http://localhost:8000/api/articles
+```
+
+Et obtenir un résultat qui se rapproche de la capture d'écran ci-dessous :
+
+
+![httpie](images/httpie.png)
