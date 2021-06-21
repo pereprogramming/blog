@@ -542,3 +542,13 @@ async def root(request: Request):
 Il ne devrait plus rester que la fonction `/api/articles` dans votre documentation :
 
 ![Swagger documentation](images/swagger_fastapi_2.png)
+
+## Conclusion
+
+Nous venons de voir comment afficher du contenu HTML, connecter une base de données, développer un point d'entrée pour notre API Json et comment accéder à la documentation auto-générée. Les bases d'un projet FastAPI sont maintenant posées.
+
+La prochaine étape va consister à réorganiser notre code pour qu'il puisse grossir un peu plus facilement. En effet, mettre tout notre code dans `main.py` va vite devenir un peu le bazar. Nous verrons aussi comment mettre en place un début de tests automatisés.
+
+Nous allons nous
+
+Comme d'habitude, le code pour cette partie est [accessible directement sur Github](https://github.com/vjousse/fastapi-beginners-guide/tree/part2).
