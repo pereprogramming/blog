@@ -1,6 +1,6 @@
 ---
-title: "Le guide complet du débutant avec FastAPI - Partie 2"
-date: 2021-06-11T19:33:20+01:00
+title: "Le guide complet du débutant avec FastAPI - Partie 2 : templates html, base de données et documentation"
+date: 2021-06-20T19:33:20+01:00
 draft: true
 tags:
   - python
@@ -492,3 +492,53 @@ Et obtenir un résultat qui se rapproche de la capture d'écran ci-dessous :
 
 
 ![httpie](images/httpie.png)
+
+La première ligne nous rappelle que nous utilisons le protocole __HTTP__ dans sa version __1.1__ et que le serveur nous a renvoyé un code de __status 200__. Dans le protocole HTTP, ce code de status 200 signifie que tout c'est bien passé (d'où le __OK__ ensuite).
+
+Les 4 lignes qui suivent sont ce que l'en appelle des entêtes (_headers_ en anglais). Ce sont des informations qui viennent compléter la réponse envoyée par le serveur. Dans notre cas :
+- `content-length` : la taille de la réponse en octets.
+- `content-type` : le type de contenu renvoyé. Dans notre cas du json (`application/json`). On parle ici de [type MIME (_MIME Types_)](https://fr.wikipedia.org/wiki/Type_de_m%C3%A9dias).
+- `date` : la date et l'heure de la réponse.
+- `server` : le type de serveur qui a envoyé la réponse.
+
+S'en vient ensuite le contenu de la réponse à proprement parler. Dans notre cas une liste (délimitée par `[`et `]`) d'objets json (délimités par `{` et `}`).
+
+
+## Documentation auto-générée
+
+FastAPI est capable de générer la documentation de votre API automatiquement basé sur un standard nommé [OpenAPI](https://www.openapis.org/). Par défaut il génère une documentation avew [Swagger](https://swagger.io/) à l'URL [http://localhost:8000/docs](http://localhost:8000/docs)
+
+![Swagger documentation](images/swagger_fastapi_1.png)
+
+ et une autre avec [ReDoc](https://redocly.github.io/redoc/) à l'URL [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+![ReDoc documentation](images/redoc_fastapi_1.png)
+
+Nous rentrerons un peu plus tard dans les détails de la documentation. Pour l'instant, nous allons juste faire en sorte de ne pas inclure, dans notre documentation d'API, les méthodes qui renvoient du HTML au lieu du JSON. En effet les méthode renvoyant du HTML sont celles qui sont destinées à afficher des pages dans le navigateur et non à renvoyer des données JSON via une API.
+
+Pour cela nous allons modifier les décorateurs `@get` des fonctions que nous ne voulons pas voir apparaître dans la documentation en ajoutant un paramètre `include_in_schema=False`.
+
+```python
+# app/main.py
+
+# …
+
+@app.get("/articles/create", include_in_schema=False)
+async def articles_create(request: Request):
+
+# …
+
+@app.get("/articles", include_in_schema=False)
+async def articles_list(request: Request):
+
+# …
+
+@app.get("/", include_in_schema=False)
+async def root(request: Request):
+
+# …
+```
+
+Il ne devrait plus rester que la fonction `/api/articles` dans votre documentation :
+
+![Swagger documentation](images/swagger_fastapi_2.png)
