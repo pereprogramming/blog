@@ -33,6 +33,8 @@ fastapi-beginners-guide/   <-- répertoire racine de notre projet
 ├── app/                   <-- répertoire contenant le code Python
 │   ├── core/              <-- fichiers partagés (config, exceptions, …)
 │   │   └── __init__.py
+│   ├── crud/              <-- création, récupération, mises à jour des données
+│   │   └── __init__.py
 │   ├── __init__.py
 │   ├── main.py            <-- point d'entrée de notre programme FastAPI
 │   ├── models/            <-- les modèles de notre base de données
@@ -546,8 +548,6 @@ Il ne devrait plus rester que la fonction `/api/articles` dans votre documentati
 
 Nous venons de voir comment afficher du contenu HTML, connecter une base de données, développer un point d'entrée pour notre API Json et comment accéder à la documentation auto-générée. Les bases d'un projet FastAPI sont maintenant posées.
 
-La prochaine étape va consister à réorganiser notre code pour qu'il puisse grossir un peu plus facilement. En effet, mettre tout notre code dans `main.py` va vite devenir un peu le bazar. Nous verrons aussi comment mettre en place un début de tests automatisés.
-
-Nous allons nous
+La prochaine étape va consister à réorganiser notre code pour qu'il puisse grossir un peu plus facilement. En effet, mettre tout notre code dans `main.py` va vite être ingérable. Nous verrons aussi comment mettre en place un début de tests automatisés.
 
 Comme d'habitude, le code pour cette partie est [accessible directement sur Github](https://github.com/vjousse/fastapi-beginners-guide/tree/part2).
