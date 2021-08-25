@@ -1,7 +1,6 @@
 ---
 title: "Comment préserver ses variables d'environnement et sa configuration vim avec sudo"
 date: 2021-08-25T08:00:03+01:00
-draft: true
 tags:
   - linux
   - terminal
