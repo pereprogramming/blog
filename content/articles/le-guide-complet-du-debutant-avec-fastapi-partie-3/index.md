@@ -271,10 +271,10 @@ Quoiqu'il en soit, lorsque que l'on utilise un langage comme Python où les erre
 > __Bon à savoir__ : il existe d'autres langages de programmation que l'on appelle _statiquement typés_ et qui disposent d'un compilateur qui vérifira une partie des erreurs avant même que vous puissiez lancer l'application (_Rust_, _Java_,…). Mais comme ce n'est pas le cas de Python, écrire des tests est primordial. À noter que même si ces langages disposent d'un compilateur, il ne dispense pas d'écire tous les tests mais seulement quelques tests basiques.
 
 
-Le logiciel qui va nous permettre de tester notre programme est appelé __`pytest`__. Commençons pas l'installer dans notre `virtualenv` :
+Le logiciel qui va nous permettre de tester notre programme est appelé __`pytest`__. Commençons pas l'installer dans notre `virtualenv` ainsi qu'une librairie utile à `Tortoise` :
 
 ```
-(venv) $ pip install pytest
+(venv) $ pip install pytest asynctest
 ```
 
 Nous allons commencer par effectuer un test tout simple : s'assurer que notre page d'accueil `/` se charge sans erreur.
