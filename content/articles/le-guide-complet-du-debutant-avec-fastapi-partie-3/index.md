@@ -11,7 +11,7 @@ toc: true
 
 ## Restructuration du code
 
-Jusqu'ici nous avons placé tout notre code dans le même fichier `main.py`. Même si nous pourrions continuer comme cela, il est souvent préférable de séparer son code dans des fichiers et des modules différents. Cela va nous aider à nous y retrouver et va encourager le fait de séparer les responsabilités/préoccupations ([Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) en anglais). Lors de la [partie 2](http://localhost:1313/articles/le-guide-complet-du-debutant-avec-fastapi-partie-2/) nous avions déjà posé quelques bases en créant des répertoires pour les modèles, les templates, le core, etc. Il est maintenant temps d'aller plus loin et de les utiliser à bon escient.
+Jusqu'ici nous avons placé tout notre code dans le même fichier `main.py`. Même si nous pourrions continuer comme cela, il est souvent préférable de séparer son code dans des fichiers et des modules différents. Cela va nous aider à nous y retrouver et va encourager le fait de séparer les responsabilités/préoccupations ([Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) en anglais). Lors de la [partie 2](/articles/le-guide-complet-du-debutant-avec-fastapi-partie-2/) nous avions déjà posé quelques bases en créant des répertoires pour les modèles, les templates, le core, etc. Il est maintenant temps d'aller plus loin et de les utiliser à bon escient.
 
 ### Les modèles
 
@@ -42,7 +42,7 @@ class Article(Model):
 
 ```
 
-N'oubliez pas de supprimer les lignes correspondantes dans `main.py`. Il naut faut maintenant importer ce nouveau fichier dans `main.py`.
+N'oubliez pas de supprimer les lignes correspondantes dans `main.py`. Il nous faut maintenant importer ce nouveau fichier dans `main.py`.
 
 ```python
 from app.models.article import Article
@@ -63,7 +63,7 @@ from app.models.article import Article
 # … reste du fichier
 ```
 
-Pour être sûr que vous n'avez rien cassé, vous pouvez aller vérifier que [la page listant vos articles](http://localhost:8000/articles) fonctionne toujours correctement.
+Pour être sûr que vous n'avez rien cassé, vous pouvez aller vérifier que [la page listant vos articles](/articles) fonctionne toujours correctement.
 
 ### Les vues
 
@@ -79,9 +79,6 @@ Dans votre répertoire `app/views`, créez un fichier nommé `article.py` qui co
 from fastapi import APIRouter
 from fastapi import Request
 from app.models.article import Article
-
-from app.main import app
-from app.main import templates
 
 articles_views = APIRouter()
 ```
