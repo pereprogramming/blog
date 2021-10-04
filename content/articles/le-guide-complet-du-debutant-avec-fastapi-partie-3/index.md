@@ -6,6 +6,7 @@ tags:
   - framework
   - fastapi
   - web
+  - fastapi-tutorial
 toc: true
 ---
 

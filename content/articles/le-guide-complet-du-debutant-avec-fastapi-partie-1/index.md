@@ -7,6 +7,7 @@ tags:
   - framework
   - fastapi
   - web
+  - fastapi-tutorial
 ---
 
 ## Pourquoi FastAPI ?
