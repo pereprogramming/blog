@@ -250,6 +250,229 @@ Vous obtenez de nouveau une erreur qui vous dit qu'un champ est manquant :
 Notez qu'il est capable de nous dire que ce champ manquant est à l'emplacement `body`>`content`.
 
 Grâce à Pydantic et à la définition de notre schéma `ArticleCreate` nous obtenons donc gratuitement :
-- La validation des paramètres de la requête
-- La création d'un objet valide de type `ArticleCreate` dans notre vue
-- La [documentation de notre méthode POST](http://localhost:8000/docs#/Articles/articles_create_articles_post)
+- La validation des paramètres de la requête avec des messages d'erreur compréhensibles.
+- La création d'un objet valide de type `ArticleCreate` dans notre vue.
+- La [documentation de notre méthode POST](http://localhost:8000/docs#/Articles/articles_create_articles_post).
+
+## Mise à jour d'un article
+
+Sur le même modèle, nous allons maintenant créer une méthode pour mettre à jour un article existant. Nous allons partir du fait qu'il faut spécifier le titre __et__ le contenu à mettre à jour. Il est possible de réaliser des [mises à jours partielles](https://fastapi.tiangolo.com/tutorial/body-updates/) mais pour des raisons de simplicité, je préfère garder cela de côté pour l'instant.
+
+Ajoutez le schéma Pydantic suivant dans votre fichier `app/schemas/article.py` :
+
+```python
+class ArticleUpdate(ArticleBase):
+    pass
+```
+
+Puis ajoutez cette méthode à votre fichier `app/views/articles.py` :
+
+```python
+@articles_views.put("/articles/{article_id}",
+                    response_model=ArticleSchema)
+async def articles_update(article_id: int,
+                          article_update: ArticleUpdate):
+
+    article: Optional[Article] = await Article.get_or_none(id=article_id)
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    article.title = article_update.title
+    article.content = article_update.content
+
+    await article.save()
+
+    return article
+
+```
+
+Il vous faudra mettre à jour vos imports comme ceci :
+
+```python
+from fastapi import APIRouter, HTTPException, Request
+from app.models.article import Article
+from app.core.config import templates
+from app.schemas.article import (
+    Article as ArticleSchema,
+    ArticleCreate,
+    ArticleUpdate)
+from typing import List, Optional
+```
+
+Voyons maintenant les détails de notre nouvelle méthode `articles_update`.
+
+Tout d'abord c'est une méthode que nous devrons appeler en utilisant le verbe http PUT `@articles_views.put` qui est le verbe utilisé pour mettre à jour une donnée sur un serveur. À noter qu'il est aussi possible d'utiliser le verbe HTTP PATCH pour des mises à jour partielles, mais c'est pour l'instant hors du périmètre de ce tutoriel.
+
+```python
+@articles_views.put("/articles/{article_id}",
+                    response_model=ArticleSchema)
+```
+
+Ensuite, nous avons besoin de l'id de l'article que nous souhaitons mettre à jour. Nous spécifions dans l'URL de notre méthode un paramètre `article_id` entre accolades : `/articles/{article_id}`. Il nous suffit ensuite de mettre ce même nom en paramètre de notre fonction :
+
+```python
+async def articles_update(article_id: int,
+                          article_update: ArticleUpdate):
+```
+
+FastAPI saura que notre méthode doit s'appeler avec des URL du type `/articles/1` et récupérera la valeur de l'id (1 dans notre exemple) dans une variable `article_id` à l'intérieur de notre fonction.
+
+Ensuite, nous récupérons notre article de la base de données grâce à _Tortoise_ et lançons une erreur 404 si nous ne le trouvons pas :
+
+```python
+article: Optional[Article] = await Article.get_or_none(id=article_id)
+
+if not article:
+    raise HTTPException(status_code=404, detail="Article not found")
+```
+
+Notez l'annotation de type `Optional[Article]`. Elle n'est pas nécessaire mais je prends généralement l'habitude de les mettre. Elle nous permet de savoir que notre variable `article` contiendra un objet de type `Article` ou `None`.
+
+Il nous reste ensuite à mettre à jour les champs `title`, `content` et à sauvegarder l'objet dans la base de données grâce à `.save()`.
+
+Essayez par vous-même avec une commande de ce type :
+
+```bash
+http PUT http://localhost:8000/articles/1 title="Titre 1" content="Contenu 1"
+```
+
+Chose importante à noter, si vous essayer d'appeler la méthode en spécifiant un id d'article qui n'est pas un entier comme ceci :
+
+```bash
+http PUT http://localhost:8000/articles/nst title="Titre 1" content="Contenu 1"
+```
+
+Vous obtiendrez une erreur de validation de la part de FastAPI :
+
+```json
+{
+    "detail": [
+        {
+            "loc": [
+                "path",
+                "article_id"
+            ],
+            "msg": "value is not a valid integer",
+            "type": "type_error.integer"
+        }
+    ]
+}
+```
+
+Le fait que nous ayons spécifié que `article_id` devait être un entier dans la définition de notre fonction :
+
+```python
+async def articles_update(article_id: int,
+                          article_update: ArticleUpdate):
+```
+
+Permet à FastAPI de vérifier la validité du type d'entrée et d'envoyer une erreur à l'utilisateur sans que nous n'ayons rien à faire de plus.
+
+## Récupération d'un article
+
+Pour récupérer un article par son id, ajoutez le code suivant à votre fichier `app/views/articles.py` :
+
+```python
+@articles_views.get("/articles/{article_id}",
+                    response_model=ArticleSchema)
+async def articles_get(article_id: int):
+
+    article: Optional[Article] = await Article.get_or_none(id=article_id)
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    return article
+
+```
+
+Vous ne devriez pas avoir de difficultés à le comprendre. Vous n'avez ensuite plus qu'à récupérer l'article avec l'id `1` de cette manière :
+
+```bash
+http http://localhost:8000/articles/1
+```
+
+## Récupération de plusieurs articles avec limit et offset
+
+Nous allons modifier la méthode `api_articles_list` en lui ajoutant la possibilité de spécifier un _limit_ (combien d'objets l'on veut retourner) et un _offset_ (à partir de quel index on veut les retourner) qui seront tous les deux optionnels. Cette pratique est souvent utilisée notamment pour réaliser de la pagination.
+
+Tout d'abord, commencez par supprimer la fonction `articles_list` du fichier `app/views/articles.py` qui retourne la liste des articles en HTML, nous n'en n'aurons plus besoin pour l'instant.
+
+Ensuite rajoutez le code suivant au fichier `app/views/articles.py` :
+
+```python
+@articles_views.get("/articles", response_model=List[ArticleSchema])
+async def api_articles_list(offset: int = 0, limit: Optional[int] = None):
+
+    files_query = Article\
+        .all()\
+        .order_by('-created_at')\
+        .offset(offset)
+
+    if limit:
+        files_query = files_query.limit(limit)
+
+    articles = await files_query
+
+    return articles
+
+```
+
+Quelques éléments intéressants à noter ici. Tout d'abord, nous avons spécifié deux nouveaux paramètres `offset` et `limit` qui ont tous les deux des valeurs par défaut, cela veut dire que les deux peuvent être omis. Si `offset` n'est pas spécifié il aura une valeur de `0` et si `limit` n'est pas spécifié il aura une valeur par défaut de `None`. Notez l'utilisation du `\` qui permet en Python de sauter des lignes au milieu d'un code qui devrait habituellement se retrouver sur une ligne. C'est juste esthétique.
+
+Ensuite nous construisons une requête _Tortoise_ pour récupérer tous les articles, triés par date de création descendante (le `-` devant `created_at`) et commençant à l'offset spécifié (0 par défaut). Si le paramètre `limit` est spécifié, on rajoute la limitation à la requête.
+
+Vous devriez maintenant être en mesure d'appeler l'URL avec (ou pas) les paramètres `limit` et `offset`.
+
+
+- Retourne __un seul article__ (le plus récent)
+
+```
+http http://localhost:8000/api/articles?limit=1
+```
+
+- Retourne __trois articles en partant du deuxième__. Quand l'offset est à 0, on retourne à partir du premier article, quand il est à 1 à partir du deuxième, etc.
+
+```
+http http://localhost:8000/api/articles?limit=3&offset=1
+```
+
+- Retourne __tous les articles partant du troisième__.
+
+```
+http http://localhost:8000/api/articles?offset=2
+```
+
+## Suppression d'un article
+
+Et pour finir, ajoutons le code pour supprimer un article à notre fichier `app/views/articles.py` :
+
+```python
+@articles_views.delete("/articles/{article_id}")
+async def articles_delete(article_id: int):
+
+    article: Optional[Article] = await Article.get_or_none(id=article_id)
+
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+
+    await article.delete()
+
+```
+
+Notez l'utilisation du verbe HTTP DELETE pour supprimer l'article `@articles_views.delete("/articles/{article_id}")`. Vous pouvez tester avec un de vos id :
+
+```
+http DELETE http://localhost:8000/articles/1
+```
+
+Le fait que la méthode retourne un status 200 suffira à notifier l'utilisateur de votre API que la suppression de l'article s'est bien passé.
+
+## Conclusion
+
+Nous voilà entrés dans le vif du sujet ! Nous venons de voir comment créer/modifier/supprimer des éléments avec Tortoise et FastAPI. Nous en avons profité au passage pour jouer un peu avec les types, Pydantic, et les paramètres des requêtes.
+
+Nous verrons dans la prochaine partie une fonctionnalité intéressante de FastAPI : les tâches de fond. Cela nous permettra, par exemple, de lancer la traduction d'un article lorsqu'il sera posté. Stay tuned!
+
+Comme d'habitude, le code pour cette partie est [accessible directement sur Github](https://github.com/vjousse/fastapi-beginners-guide/tree/part4).
