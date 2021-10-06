@@ -469,6 +469,12 @@ http DELETE http://localhost:8000/articles/1
 
 Le fait que la méthode retourne un status 200 suffira à notifier l'utilisateur de votre API que la suppression de l'article s'est bien passé.
 
+## Tests
+
+Puisque nous avons changé l'URL de récupération de nos articles de `/api/articles` à `/articles`, il ne faut pas oublier de mettre à jour le test dans `app/tests/views/test_articles.py`.
+
+Changez `response = client.get("api/articles")` par `response = client.get("articles")`. Il serait bon de tester le reste de nos nouvelles fonctionnalités, mais je vous garde ça pour un peu plus tard.
+
 ## Conclusion
 
 Nous voilà entrés dans le vif du sujet ! Nous venons de voir comment créer/modifier/supprimer des éléments avec Tortoise et FastAPI. Nous en avons profité au passage pour jouer un peu avec les types, Pydantic, et les paramètres des requêtes.
